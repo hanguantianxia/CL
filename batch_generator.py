@@ -1,14 +1,18 @@
 import os
-import numpy
+import numpy as np
 import torch
+import json
 from typing import Tuple,Dict,List
+
+
+from pre_load import CorpusPreprocess
 
 class Batch_Generator:
     """
     the batch generator
     """
 
-    def __init__(self, corpus:List[List[str]], vocab:Dict, window_size:int=4, neg_samples:int=10,
+    def __init__(self, corpus:List[List[int]], vocab:Dict, window_size:int=4, neg_samples:int=10,
                  save_path="batch_state.json", load=False):
         """
 
@@ -19,6 +23,7 @@ class Batch_Generator:
         self.vocab = vocab
         self.window_size = window_size
         self.neg_samples = neg_samples
+        self.vocab_size = len(vocab)
 
 
         self.save_path = os.path.join(".", save_path)
@@ -67,25 +72,52 @@ class Batch_Generator:
                     negsample_list[current_batch_size] = negtive_sample
                     current_batch_size += 1
                     if current_batch_size == batch_size:
-                        # yield torch.tensor(context_list), torch.tensor(context_list), torch.tensor(negsample_list)
-                        yield  center_list, context_list, negsample_list
+                        yield torch.tensor(context_list), torch.tensor(context_list), torch.tensor(negsample_list)
+                        # yield  center_list, context_list, negsample_list
                         current_batch_size = 0
 
-    def generate_neg(self, center_word, context):
+    def generate_neg(self, center_word:int, context:List[int]) -> List[int]:
         """
 
         :param center_word:
         :param context:
         :return:
         """
-        pass
+        negtive_samples = []
+        i = 0
+
+        while i < self.neg_samples:
+            # neg_id = np.random.randint(0, self.vocab_size)
+            neg_id = np.random.randint(0, 1000)
+
+            if neg_id == center_word or neg_id in context or neg_id in negtive_samples:
+                neg_id = np.random.randint(0, 1000) #self.vocab_size)
+            negtive_samples.append(neg_id)
+            i += 1
+
+        return negtive_samples
+
+
+
+
 
 def cheak():
     test_data = "数学 是 利用 符号 语言 研究 数量 结构 变化 以及 空间 等 概念 的 一 门 学科 从某 种 角度 看 属于 形式 科学 的 一 种"
-    test_data = [test_data.strip().split()]
-    generator = Batch_Generator(test_data, {})
+    test_data = test_data.strip().split()
+    vocab = None
+    with open("vocab.json", 'r', encoding='utf-8') as f:
+        vocab = json.load(f)
+
+
+
+
+    word2id = CorpusPreprocess(vocab)
+    sent_list_id = list(map(word2id.word2id, test_data))
+    test_data = [sent_list_id]
+
+    generator = Batch_Generator(test_data, vocab)
     gen = generator.batch_generator(4)
-    print(gen)
+
     for i in gen:
         print(i)
 
@@ -93,4 +125,20 @@ def cheak():
 
 
 if __name__ == '__main__':
-    cheak()
+    test_data = "数学 是 利用 符号 语言 研究 数量 结构 变化 以及 空间 等 概念 的 一 门 学科 从某 种 角度 看 属于 形式 科学 的 一 种"
+    test_data = test_data.strip().split()
+    vocab = None
+    with open("vocab.json", 'r', encoding='utf-8') as f:
+        vocab = json.load(f)
+
+    word2id = CorpusPreprocess(vocab)
+    sent_list_id = list(map(word2id.word2id, test_data))
+    test_data = [sent_list_id]
+
+    generator = Batch_Generator(test_data, vocab)
+    gen = generator.batch_generator(4)
+
+    for i in gen:
+        print(i)
+
+    print(test_data)

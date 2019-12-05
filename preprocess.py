@@ -196,6 +196,27 @@ def save_list(filename:str, seg_sents:List[List[str]]):
 			f.write(sentence + '\n')
 
 
+def get_vocab(lexicon:Dict[str, int], vocab_size:int=80000,unknownword_token="UNK"):
+	"""
+	get the simple lexicon and vocab
+	:param lexicon:
+	:param vocab_size:
+	:return:
+	"""
+	items = lexicon.items()
+	sorted_items = sorted(items, key=lambda x:x[1], reverse=True)
+	simple_lexicon = dict(sorted_items[0: vocab_size])
+	save_lexicon(simple_lexicon, filename="simple_lexicon.json")
+	i = 0
+	vocab = {}
+	for key in simple_lexicon.keys():
+		vocab[key] = i
+		i += 1
+
+	vocab[unknownword_token] = i
+	save_lexicon(vocab, filename="vocab.json")
+
+
 
 
 
@@ -205,14 +226,21 @@ def main():
 				   if os.path.isfile(os.path.join(corpus_path,f))]
 
 	lexicons = {}
+	remain = len(corpus_list)
 	for file in corpus_list:
+		print("Now processing the {}. Only {} file(s) remain.".format(file, remain))
+
 		data = get_doc(file)
 		seg_sents = segment(data)
 		save_list(file + "_seg", seg_sents)
 		lexicon = get_lexicon(seg_sents)
 		lexicons = merge_dict(lexicons, lexicon)
 
-	save_lexicon(lexicons, "lexicon.json")
+		save_lexicon(lexicons, "lexicon.json")
+		remain -= 1
+	get_vocab(lexicons)
+
+
 
 
 

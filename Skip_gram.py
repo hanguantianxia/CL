@@ -47,7 +47,7 @@ class SkipGram(nn.Module):
 
     """
 
-    def __init__(self, embed_size:int, n_vocab:int, window_size:int):
+    def __init__(self, embed_size:int, n_vocab:int, window_size:int=2):
         """
 
         :param embed_size:
@@ -63,7 +63,7 @@ class SkipGram(nn.Module):
         self.embed_in = nn.Embedding(n_vocab, embed_size)
         self.embed_out = nn.Embedding(n_vocab, embed_size)
 
-        self.loss_func = NegtiveSample()
+        # self.loss_func = NegtiveSample()
         # initialize the embeding tables with uniform distribution
 
         # self.embed_in.weight.data.uniform_(-1, 1)
@@ -84,9 +84,20 @@ class SkipGram(nn.Module):
         output_vectors = self.embed_out(output_words)
         noise_vecotors = self.embed_out(noise_words)
 
-        score = self.loss_func(input_vectors, output_vectors, noise_vecotors)
+        input_vectors = input_vectors.unsqueeze(2)          # (batch_size, embed_size, 1)
+        output_vectors = output_vectors.unsqueeze(1)        # (batch_size, 1, embed_size)
 
-        return score
+        out_loss = torch.bmm(output_vectors, input_vectors).sigmoid().log() # (batch_size, 1)
+        out_loss = out_loss.squeeze() # (batch_size)
+
+        # incorrect log
+
+        noise_loss = torch.bmm(noise_vecotors.neg(), input_vectors).sigmoid().log().squeeze()
+        noise_loss = noise_loss.sum(1)
+
+        loss = - (noise_loss + out_loss).squeeze().mean()
+
+        return loss
 
 
 
