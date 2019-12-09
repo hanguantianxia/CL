@@ -39,7 +39,7 @@ def train():
     """
     BATCH_SIZE = 2048
 
-    TRAIN_CORPUS = "train_data_jieba"
+    TRAIN_CORPUS = "train_data_pku"
     VOCAB_PATH = os.path.join(".", TRAIN_CORPUS,"vocab.json")
     STATE_PATH = os.path.join(".",TRAIN_CORPUS , "model", "state.json")
     CORPUS_PATH = os.path.join(".", TRAIN_CORPUS, TRAIN_CORPUS)
@@ -57,7 +57,7 @@ def train():
     embedding_dim = 100
     WINDOW_SIZE = 2
 
-    device = 'cuda:1' if torch.cuda.is_available() else 'cpu'
+    device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
     # device = 'cpu'
     device = torch.device(device)
 

@@ -39,7 +39,7 @@ def train():
     """
     BATCH_SIZE = 2048
 
-    TRAIN_CORPUS = "train_data_jieba"
+    TRAIN_CORPUS = "train_data_shenhao"
     VOCAB_PATH = os.path.join(".", TRAIN_CORPUS,"vocab.json")
     STATE_PATH = os.path.join(".",TRAIN_CORPUS , "model", "state.json")
     CORPUS_PATH = os.path.join(".", TRAIN_CORPUS, TRAIN_CORPUS)
